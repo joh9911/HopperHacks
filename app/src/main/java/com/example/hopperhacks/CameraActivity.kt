@@ -93,8 +93,12 @@ import java.util.concurrent.Executors
 
                             val valueType = barcode.valueType
                             // See API reference for complete list of supported types
-                            Log.d("실행","success! $bounds ${corners} $rawValue $valueType")
+                            Log.d("실행","success! $bounds ${corners} ${rawValue} $valueType")
                             when (valueType) {
+                                Barcode.TYPE_PRODUCT -> {
+                                    val productCode = barcode.rawValue
+                                    Log.d("상품 코드","${productCode}")
+                                }
                                 Barcode.TYPE_WIFI -> {
                                     val ssid = barcode.wifi!!.ssid
                                     val password = barcode.wifi!!.password
@@ -111,7 +115,6 @@ import java.util.concurrent.Executors
                         // ...
                     }
                     .addOnFailureListener {
-                        Log.d("실행","failure!")
                         // Task failed with an exception
                         // ...
                     }
