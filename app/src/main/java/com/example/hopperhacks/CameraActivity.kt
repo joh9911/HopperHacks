@@ -23,12 +23,18 @@ import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.Retrofit
 
 import java.security.Permission
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@ExperimentalGetImage class CameraActivity: FragmentActivity() {
+@ExperimentalGetImage
+class CameraActivity : FragmentActivity() {
     var mBinding: ActivityCameraBinding? = null
     val binding get() = mBinding!!
 
@@ -36,34 +42,44 @@ import java.util.concurrent.Executors
 
     private lateinit var cameraExecutor: ExecutorService
 
+    private lateinit var retrofit2: Retrofit
+    private lateinit var myApiService: MyApiService
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mBinding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
         cameraExecutor = Executors.newSingleThreadExecutor()
+        retrofit2 = Retrofit2().initRetrofit()
+        myApiService = retrofit2.create(MyApiService::class.java)
 
 
         if (allPermissionsGranted()) {
             startCamera()
         } else {
             ActivityCompat.requestPermissions(
-                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+                this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS
+            )
         }
 
 
     }
+
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray) {
+        IntArray
+    ) {
 
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
                 startCamera()
             } else {
-                Toast.makeText(this,
+                Toast.makeText(
+                    this,
                     "Permissions not granted by the user.",
-                    Toast.LENGTH_SHORT).show()
+                    Toast.LENGTH_SHORT
+                ).show()
                 finish()
             }
         }
@@ -72,19 +88,23 @@ import java.util.concurrent.Executors
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
-            baseContext, it) == PackageManager.PERMISSION_GRANTED
+            baseContext, it
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
-    @ExperimentalGetImage private inner class YourImageAnalyzer(private val scanner: BarcodeScanner) : ImageAnalysis.Analyzer {
+    @ExperimentalGetImage
+    private inner class YourImageAnalyzer(private val scanner: BarcodeScanner) :
+        ImageAnalysis.Analyzer {
 
         override fun analyze(imageProxy: ImageProxy) {
-            Log.d("실행 ","analyze")
+            Log.d("실행 ", "analyze")
             val mediaImage = imageProxy.image
             if (mediaImage != null) {
-                val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
+                val image =
+                    InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                 val result = scanner.process(image)
                     .addOnSuccessListener { barcodes ->
-                        Log.d("실행","성공!")
+                        Log.d("실행", "성공!")
                         for (barcode in barcodes) {
                             val bounds = barcode.boundingBox
                             val corners = barcode.cornerPoints
@@ -93,18 +113,37 @@ import java.util.concurrent.Executors
 
                             val valueType = barcode.valueType
                             // See API reference for complete list of supported types
-                            Log.d("실행","success! $bounds ${corners} ${rawValue} $valueType")
+                            Log.d("실행", "success! $bounds ${corners} ${rawValue} $valueType")
                             when (valueType) {
                                 Barcode.TYPE_PRODUCT -> {
-                                    val productCode = barcode.rawValue
-                                    Log.d("상품 코드","${productCode}")
+                                    val productCode = barcode.rawValue!!
+                                    var API_KEY = "74eo2sladkomwtwzjphv4437j778ok"
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        val result = myApiService.getInfoFromBarcode(
+                                            productCode,
+                                            "y",
+                                            API_KEY
+                                        ).body()
+                                        val myDataModel =
+                                            MyDataModel(
+                                                result?.products?.get(0)?.title,
+                                                result?.products?.get(0)?.nutritionFacts,
+                                                result?.products?.get(0)?.images?.get(0)
+                                            )
+                                        withContext(Dispatchers.Main){
+
+                                        }
+                                    }
+                                    Log.d("상품 코드", "${productCode}")
                                 }
+
                                 Barcode.TYPE_WIFI -> {
                                     val ssid = barcode.wifi!!.ssid
                                     val password = barcode.wifi!!.password
                                     val type = barcode.wifi!!.encryptionType
-                                    Log.d("성공 시","$ssid $password $type")
+                                    Log.d("성공 시", "$ssid $password $type")
                                 }
+
                                 Barcode.TYPE_URL -> {
                                     val title = barcode.url!!.title
                                     val url = barcode.url!!.url
@@ -121,9 +160,8 @@ import java.util.concurrent.Executors
                 imageProxy.close()
                 // Pass image to an ML Kit Vision API
                 // ...
-            }
-            else{
-                Log.d("실행","실해오디고asdfs 있음")
+            } else {
+                Log.d("실행", "실해오디고asdfs 있음")
             }
         }
     }
@@ -138,7 +176,10 @@ import java.util.concurrent.Executors
         val imageAnalyzer = ImageAnalysis.Builder()
             .build()
             .also {
-                it.setAnalyzer(cameraExecutor, YourImageAnalyzer(BarcodeScanning.getClient(options)))
+                it.setAnalyzer(
+                    cameraExecutor,
+                    YourImageAnalyzer(BarcodeScanning.getClient(options))
+                )
             }
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -165,9 +206,10 @@ import java.util.concurrent.Executors
 
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview, imageCapture, imageAnalyzer)
+                    this, cameraSelector, preview, imageCapture, imageAnalyzer
+                )
 
-            } catch(exc: Exception) {
+            } catch (exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
 
@@ -178,12 +220,13 @@ import java.util.concurrent.Executors
         super.onDestroy()
         cameraExecutor.shutdown()
     }
+
     companion object {
         private const val TAG = "CameraXApp"
         private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS =
-            mutableListOf (
+            mutableListOf(
                 android.Manifest.permission.CAMERA,
                 android.Manifest.permission.RECORD_AUDIO
             ).apply {

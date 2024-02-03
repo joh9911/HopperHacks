@@ -2,10 +2,11 @@ package com.example.hopperhacks
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.camera.core.ExperimentalGetImage
 import androidx.fragment.app.FragmentActivity
 import com.example.hopperhacks.databinding.ActivityMainBinding
 
-class MainActivity: FragmentActivity() {
+@ExperimentalGetImage class MainActivity: FragmentActivity() {
     var mBinding: ActivityMainBinding? = null
     val binding get() = mBinding!!
 
@@ -13,6 +14,8 @@ class MainActivity: FragmentActivity() {
         super.onCreate(savedInstanceState)
         mBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
 
         binding.scanButton.setOnClickListener {
             val intent = Intent(this, CameraActivity::class.java)
