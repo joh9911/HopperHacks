@@ -170,7 +170,7 @@ class CameraActivity : FragmentActivity() {
             "messages": [
                 {
                     "role": "user",
-                    "content": "Give me a list of healthier alternatives of ${title}. No other text, just list the product names."
+                    "content": "${myDataModel.name}. Give me a list of healthier alternative to this food/drink products. Only list them as output with no other information."
                 }
             ]
         }
@@ -194,6 +194,7 @@ class CameraActivity : FragmentActivity() {
                                                 putExtra("image", "${myDataModel.imageUrl}")
                                                 putExtra("list", "${responseBody}")
                                             }
+
 
                                             startActivity(intent)
 
