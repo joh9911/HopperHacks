@@ -38,7 +38,41 @@ import kotlinx.coroutines.launch
         addRecommendationsToScrollView(list)
         binding.productName.text = title
 
+        val (a,b) = calculateBmrAndTdee()
 
+        binding.myNutritionCal.text = "My daily requiremet cal: ${b} kcal"
+
+
+
+
+    }
+
+    fun calculateBmrAndTdee(
+    ): Pair<Double, Double> {
+        val sharedPreferences = getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
+
+        val age = sharedPreferences.getInt("Age", 0) // 기본값으로 0을 사용
+        val height = sharedPreferences.getFloat("Height", 0f) // 기본값으로 0f를 사용
+        val weight = sharedPreferences.getFloat("Weight", 0f) // 기본값으로 0f를 사용
+        val gender = sharedPreferences.getString("Gender", "Male") // 기본값으로 "Not specified"를 사용
+        val activityLevel = sharedPreferences.getString("ActivityLevel", "Not specified") // 기본값으로 "Not specified"를 사용
+
+        val bmr: Double = if (gender == "male") {
+            88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+        } else {
+            447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
+        }
+
+        val tdeeMultiplier = when (activityLevel) {
+            "Low" -> 1.2
+            "Moderate" -> 1.55
+            "High" -> 1.725
+            else -> 1.2 // 기본값으로 적은 활동을 선택
+        }
+
+        val tdee = bmr * tdeeMultiplier
+
+        return Pair(bmr, tdee)
     }
 
     fun extractContentToList(responseBody: String?): List<String> {

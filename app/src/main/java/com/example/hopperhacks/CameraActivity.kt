@@ -1,5 +1,6 @@
 package com.example.hopperhacks
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Insets.add
@@ -142,10 +143,27 @@ class CameraActivity : FragmentActivity() {
                                                 result?.products?.get(0)?.nutritionFacts,
                                                 result?.products?.get(0)?.images?.get(0)
                                             )
+                                        Log.d("결과","$myDataModel")
 
 
                                         val client = OkHttpClient()
                                         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+//                                        val body = """
+//{
+//    "model": "gpt-3.5-turbo",
+//    "messages": [
+//        {
+//            "role": "user",
+//            "content": "I have calculated my BMR and TDEE for weight management. My BMR is approximately $a calories, and my TDEE to maintain my weight is $b calories. My diet goals include a balanced macronutrient distribution of 50% carbohydrates, 20% protein, and 30% fats. Recently, I scanned a product with the following nutritional information: ${myDataModel.nutritionFacts}. How does this product fit into my dietary goals? Can you provide advice on incorporating this product into my diet and suggest any healthier alternative food options that align with my weight loss goals and nutritional needs?"
+//        },
+//        {
+//            "role": "user",
+//            "content": "I scanned a product containing 500 calories, with 20 grams of protein, 80 grams of carbohydrates, and 15 grams of fat per serving. I'm aiming for weight loss and prefer meals high in protein but lower in calories and carbs. Can you suggest healthier alternative food options?"
+//        }
+//    ]
+//}
+//""".trimIndent()
+
                                         val body = """
         {
             "model": "gpt-3.5-turbo",
@@ -160,7 +178,7 @@ class CameraActivity : FragmentActivity() {
 
                                         val request = Request.Builder()
                                             .url("https://api.openai.com/v1/chat/completions")
-                                            .addHeader("Authorization", "Bearer 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")
+                                            .addHeader("Authorization", "Bearer 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")
                                             .post(body)
                                             .build()
 
@@ -213,6 +231,8 @@ class CameraActivity : FragmentActivity() {
             }
         }
     }
+
+
 
 
 
