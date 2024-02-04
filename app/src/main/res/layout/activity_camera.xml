@@ -23,8 +23,11 @@
             android:text="Scan your barcode"
             android:textColor="#3F93C1"
             android:textSize="25sp"
-            tools:layout_editor_absoluteX="75dp"
-            tools:layout_editor_absoluteY="196dp"></TextView>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.906"></TextView>
     </androidx.constraintlayout.widget.ConstraintLayout>
     
     <FrameLayout
