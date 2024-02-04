@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
+    android:background="#CBE2EF"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <TextView
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -12,6 +14,8 @@
         android:id="@+id/product_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#3F93C1"
         android:gravity="center"/>
     <ImageView
         android:id="@+id/product_image"
@@ -31,15 +35,18 @@
         android:text="Nutrition Facts"
         android:layout_width="300dp"
         android:gravity="center"
-        android:textColor="@color/black"
+        android:textColor="#3F93C1"
         android:layout_height="wrap_content"
         android:textSize="20dp"
+        android:fontFamily="monospace"
         android:layout_marginTop="20dp"
         android:textStyle="bold"/>
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nutrition_facts_scroll_view"
         android:layout_width="300dp"
         android:layout_height="200dp"
+        android:fontFamily="monospace"
+        android:textColor="#4598C5"
         app:layout_constraintTop_toBottomOf="@id/nutrition_title"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -58,12 +65,15 @@
         android:layout_width="match_parent"
         android:layout_height="150dp"
         app:layout_constraintTop_toBottomOf="@id/nutrition_facts_scroll_view"
+        android:fontFamily="monospace"
+        android:textColor="#4598C5"
         app:layout_constraintBottom_toBottomOf="parent">
         <LinearLayout
             android:id="@+id/recommendation_linear_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
+
 
         </LinearLayout>
     </HorizontalScrollView>
