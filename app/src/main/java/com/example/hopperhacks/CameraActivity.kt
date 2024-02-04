@@ -1,10 +1,12 @@
 package com.example.hopperhacks
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Insets.add
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
@@ -18,6 +20,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.example.hopperhacks.databinding.ActivityCameraBinding
 import com.example.hopperhacks.databinding.ActivityMainBinding
+import com.google.gson.Gson
+import com.google.gson.JsonParser
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -27,6 +31,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Retrofit
 
 import java.security.Permission
@@ -53,7 +61,7 @@ class CameraActivity : FragmentActivity() {
         cameraExecutor = Executors.newSingleThreadExecutor()
         retrofit2 = Retrofit2().initRetrofit()
         myApiService = retrofit2.create(MyApiService::class.java)
-
+//        initializeGPT3()
 
         if (allPermissionsGranted()) {
             startCamera()
@@ -93,7 +101,7 @@ class CameraActivity : FragmentActivity() {
     }
 
     @ExperimentalGetImage
-    private inner class YourImageAnalyzer(private val scanner: BarcodeScanner) :
+    private inner class YourImageAnalyzer(private val scanner: BarcodeScanner, private val imageAnalysis: ImageAnalysis) :
         ImageAnalysis.Analyzer {
 
         override fun analyze(imageProxy: ImageProxy) {
@@ -104,7 +112,6 @@ class CameraActivity : FragmentActivity() {
                     InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
                 val result = scanner.process(image)
                     .addOnSuccessListener { barcodes ->
-                        Log.d("실행", "성공!")
                         for (barcode in barcodes) {
                             val bounds = barcode.boundingBox
                             val corners = barcode.cornerPoints
@@ -112,13 +119,18 @@ class CameraActivity : FragmentActivity() {
                             val rawValue = barcode.rawValue
 
                             val valueType = barcode.valueType
+
+
                             // See API reference for complete list of supported types
                             Log.d("실행", "success! $bounds ${corners} ${rawValue} $valueType")
                             when (valueType) {
                                 Barcode.TYPE_PRODUCT -> {
                                     val productCode = barcode.rawValue!!
-                                    var API_KEY = "74eo2sladkomwtwzjphv4437j778ok"
+                                    var API_KEY = "5dgwzskwy4uwokf3191pgdm2byrd87"
                                     CoroutineScope(Dispatchers.IO).launch {
+                                        withContext(Dispatchers.Main){
+                                            binding.progressBar.visibility = View.VISIBLE
+                                        }
                                         val result = myApiService.getInfoFromBarcode(
                                             productCode,
                                             "y",
@@ -130,11 +142,47 @@ class CameraActivity : FragmentActivity() {
                                                 result?.products?.get(0)?.nutritionFacts,
                                                 result?.products?.get(0)?.images?.get(0)
                                             )
+
+
+                                        val client = OkHttpClient()
+                                        val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+                                        val body = """
+        {
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Give me a list of healthier alternatives of ${title}. No other text, just list the product names."
+                }
+            ]
+        }
+        """.trimIndent().toRequestBody(jsonMediaType)
+
+                                        val request = Request.Builder()
+                                            .url("https://api.openai.com/v1/chat/completions")
+                                            .addHeader("Authorization", "Bearer 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")
+                                            .post(body)
+                                            .build()
+
+                                        val response = client.newCall(request).execute()
+
+                                        val responseBody = response.body?.string()
+
+
                                         withContext(Dispatchers.Main){
+                                            val intent = Intent(this@CameraActivity,ActivityResult::class.java).apply{
+                                                putExtra("title", "${myDataModel.name}")
+                                                putExtra("nutrition", "${myDataModel.nutritionFacts}")
+                                                putExtra("image", "${myDataModel.imageUrl}")
+                                                putExtra("list", "${responseBody}")
+                                            }
+
+                                            startActivity(intent)
 
                                         }
                                     }
-                                    Log.d("상품 코드", "${productCode}")
+
+                                    imageAnalysis.clearAnalyzer()
                                 }
 
                                 Barcode.TYPE_WIFI -> {
@@ -167,6 +215,69 @@ class CameraActivity : FragmentActivity() {
     }
 
 
+
+    fun fetchGPT3Response(title: String?) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val client = OkHttpClient()
+            val jsonMediaType = "application/json; charset=utf-8".toMediaType()
+            val body = """
+        {
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Give me a list of healthier alternatives of ${title}. No other text, just list the product names."
+                }
+            ]
+        }
+        """.trimIndent().toRequestBody(jsonMediaType)
+
+            val request = Request.Builder()
+                .url("https://api.openai.com/v1/chat/completions")
+                .addHeader("Authorization", "Bearer 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")
+                .post(body)
+                .build()
+
+            val response = client.newCall(request).execute()
+
+            val responseBody = response.body?.string()
+
+            withContext(Dispatchers.Main) {
+                Log.d("응답","${extractContentToList(responseBody)}")
+            }
+        }
+    }
+
+    fun extractContentToList(responseBody: String?): List<String> {
+        return responseBody?.let {
+            val gson = Gson()
+            val responseObj = gson.fromJson(it, Response::class.java)
+
+            // 첫 번째 choice의 message -> content 값을 추출
+            if (responseObj.choices.isNotEmpty()) {
+                val content = responseObj.choices.first().message.content
+                // content를 줄바꿈으로 분리하여 리스트로 변환
+                content.split("\n")
+            } else {
+                emptyList()
+            }
+        } ?: emptyList() // responseBody가 null인 경우 빈 리스트 반환
+    }
+
+    // 사용할 데이터 클래스 정의
+    data class Response(
+        val choices: List<Choice>
+    )
+
+    data class Choice(
+        val message: Message
+    )
+
+    data class Message(
+        val content: String
+    )
+
+
     private fun startCamera() {
         val options = BarcodeScannerOptions.Builder()
 
@@ -178,7 +289,7 @@ class CameraActivity : FragmentActivity() {
             .also {
                 it.setAnalyzer(
                     cameraExecutor,
-                    YourImageAnalyzer(BarcodeScanning.getClient(options))
+                    YourImageAnalyzer(BarcodeScanning.getClient(options), it)
                 )
             }
 
