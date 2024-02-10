@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:background="#CBE2EF"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.05"
+        android:textSize="20dp"
+        android:id="@+id/product_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:textColor="#3F93C1"
+        android:gravity="center"/>
+    <ImageView
+        android:id="@+id/product_image"
+        app:layout_constraintTop_toBottomOf="@id/product_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="20dp"
+        android:layout_width="300dp"
+        android:layout_height="200dp"
+        />
+    <TextView
+        android:id="@+id/nutrition_title"
+        app:layout_constraintTop_toBottomOf="@id/product_image"
+        app:layout_constraintBottom_toTopOf="@id/nutrition_facts_scroll_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:text="Nutrition Facts"
+        android:layout_width="300dp"
+        android:gravity="center"
+        android:textColor="#3F93C1"
+        android:layout_height="wrap_content"
+        android:textSize="20dp"
+        android:fontFamily="monospace"
+        android:textStyle="bold">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/my_nutrition_cal"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/nutrition_title"
+        app:layout_constraintBottom_toTopOf="@id/nutrition_facts_scroll_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:gravity="center"
+        android:layout_marginTop="10dp"/>
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nutrition_facts_scroll_view"
+        android:layout_width="300dp"
+        android:layout_height="200dp"
+        android:fontFamily="monospace"
+        android:textColor="#4F9FCA"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/my_nutrition_cal">
+        <LinearLayout
+            android:id="@+id/nutrition_facts_linear_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+    <TextView
+        android:id="@+id/recom_title"
+        app:layout_constraintTop_toBottomOf="@id/nutrition_facts_scroll_view"
+        app:layout_constraintBottom_toTopOf="@id/recommendation_scroll_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        android:text="Recommendation products"/>
+
+    <HorizontalScrollView
+        android:id="@+id/recommendation_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginTop="10dp"
+        android:fontFamily="monospace"
+        android:textColor="#4F9FCA"
+        app:layout_constraintTop_toBottomOf="@id/recom_title">
+        <LinearLayout
+            android:id="@+id/recommendation_linear_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
